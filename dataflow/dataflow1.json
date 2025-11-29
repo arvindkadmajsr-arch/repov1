@@ -21,10 +21,6 @@
 			],
 			"sinks": [
 				{
-					"dataset": {
-						"referenceName": "ds_sqldb_dest",
-						"type": "DatasetReference"
-					},
 					"name": "sink1"
 				}
 			],
@@ -63,16 +59,8 @@
 				"     broadcast: 'auto')~> join1",
 				"join1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     deletable:false,",
-				"     insertable:true,",
-				"     updateable:false,",
-				"     upsertable:false,",
-				"     recreate:true,",
-				"     format: 'table',",
-				"     preSQLs:['DROP TABLE EMPLOYEE_DEPT;\\n\\nCREATE TABLE STG_EMPLOYEE_DEPT(EMPLOYEEID INT,\\nFIRST_NAME VARCHAR(50),\\nLAST_NAME VARCHAR(50),\\nHIRE_DATE VARCHAR(10),\\nMANAGER_ID VARCHAR(50),\\nSALARY INT,\\nCOMMISSION INT,\\nDEPT_NUMBER INT,\\nDEPT_NAME VARCHAR(50),\\nDEPT_LOC VARCHAR(50));'],",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
 				"          EmployeeID,",
 				"          FirstName,",
@@ -84,7 +72,8 @@
 				"          DeptNumber,",
 				"          DeptName = dept@DeptName,",
 				"          DeptLoc",
-				"     )) ~> sink1"
+				"     ),",
+				"     format: 'table') ~> sink1"
 			]
 		}
 	}

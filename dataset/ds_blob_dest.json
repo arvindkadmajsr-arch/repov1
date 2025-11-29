@@ -1,0 +1,12 @@
+{
+	"name": "ds_blob_dest",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_blob_dest",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureTable",
+		"schema": []
+	}
+}

@@ -1,0 +1,17 @@
+{
+	"name": "ls_sqldb_dest",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"server": "arvind29112025srvr.database.windows.net",
+			"database": "arvind29112025db",
+			"encrypt": "mandatory",
+			"trustServerCertificate": false,
+			"authenticationType": "SQL",
+			"userName": "arvind29112025user",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQDgxMjQ5RkI4LUY3MTUtNDlFRC05NjcxLUVCMUY3NDlGQTlFNV8xNDAxYWQ0NS00MDlkLTRkM2EtYjVmZS0zMTUzOTYxNTIzN2YiDQp9"
+		}
+	}
+}

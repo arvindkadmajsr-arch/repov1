@@ -1,0 +1,90 @@
+{
+	"name": "df_join_employee_dept",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_employee_source",
+						"type": "DatasetReference"
+					},
+					"name": "employee"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_dept_source",
+						"type": "DatasetReference"
+					},
+					"name": "dept"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_sqldb_dest",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "joinemployeedept"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          EmployeeID as integer,",
+				"          FirstName as string,",
+				"          LastName as string,",
+				"          HireDate as string,",
+				"          ManagerID as string,",
+				"          Salary as integer,",
+				"          Commission as integer,",
+				"          DeptName as string,",
+				"          {DeptNumber   } as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> employee",
+				"source(output(",
+				"          DeptNumber as integer,",
+				"          DeptName as string,",
+				"          DeptLoc as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> dept",
+				"employee, dept join({DeptNumber   } == DeptNumber,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinemployeedept",
+				"joinemployeedept sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     recreate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          EmployeeID,",
+				"          FirstName,",
+				"          LastName,",
+				"          HireDate,",
+				"          ManagerID,",
+				"          Salary,",
+				"          Commission,",
+				"          DeptNumber,",
+				"          DeptName = dept@DeptName,",
+				"          DeptLoc",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

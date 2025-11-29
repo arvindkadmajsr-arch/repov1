@@ -21,6 +21,10 @@
 			],
 			"sinks": [
 				{
+					"dataset": {
+						"referenceName": "ds_blob_dest",
+						"type": "DatasetReference"
+					},
 					"name": "sink1"
 				}
 			],
@@ -72,8 +76,7 @@
 				"          DeptNumber,",
 				"          DeptName = dept@DeptName,",
 				"          DeptLoc",
-				"     ),",
-				"     format: 'table') ~> sink1"
+				"     )) ~> sink1"
 			]
 		}
 	}

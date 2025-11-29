@@ -1,0 +1,33 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "arvind29112025adf"
+		},
+		"ds_employee_source_connectionString": {
+			"value": ""
+		},
+		"ls_dept_source_connectionString": {
+			"value": ""
+		},
+		"ls_sqldb_dest_password": {
+			"value": ""
+		},
+		"ls_sqldb_dest_properties_typeProperties_server": {
+			"value": "arvind29112025srvr.database.windows.net"
+		},
+		"ls_sqldb_dest_properties_typeProperties_database": {
+			"value": "arvind29112025db"
+		},
+		"ls_sqldb_dest_properties_typeProperties_userName": {
+			"value": "arvind29112025user"
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}

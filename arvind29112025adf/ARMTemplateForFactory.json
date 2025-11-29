@@ -1,0 +1,564 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "arvind29112025adf"
+		},
+		"ds_employee_source_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ds_employee_source'"
+		},
+		"ls_dept_source_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_dept_source'"
+		},
+		"ls_sqldb_dest_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'ls_sqldb_dest'"
+		},
+		"ls_sqldb_dest_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "arvind29112025srvr.database.windows.net"
+		},
+		"ls_sqldb_dest_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "arvind29112025db"
+		},
+		"ls_sqldb_dest_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "arvind29112025user"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "dataflow1",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"employee": {},
+									"dept": {},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-11-29T06:36:52Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/dataflow1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_emloyee_dept')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_join_employee_dept",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"employee": {},
+									"dept": {},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "Stored procedure1",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Data flow1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[sp_LoadJoinedEmployeeData]"
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_sqldb_dest",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-11-29T06:21:59Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/df_join_employee_dept')]",
+				"[concat(variables('factoryId'), '/linkedServices/ls_sqldb_dest')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_dept_source')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_dept_source",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "department.txt",
+						"container": "data"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "DeptNumber",
+						"type": "String"
+					},
+					{
+						"name": "DeptName",
+						"type": "String"
+					},
+					{
+						"name": "DeptLoc",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_dept_source')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_employee_source')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ds_employee_source",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "SampleEmployee.txt",
+						"container": "data"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "EmployeeID",
+						"type": "String"
+					},
+					{
+						"name": "FirstName",
+						"type": "String"
+					},
+					{
+						"name": "LastName",
+						"type": "String"
+					},
+					{
+						"name": "HireDate",
+						"type": "String"
+					},
+					{
+						"name": "ManagerID",
+						"type": "String"
+					},
+					{
+						"name": "Salary",
+						"type": "String"
+					},
+					{
+						"name": "Commission",
+						"type": "String"
+					},
+					{
+						"name": "DeptName",
+						"type": "String"
+					},
+					{
+						"name": "DeptNumber   ",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ds_employee_source')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sqldb_dest')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_sqldb_dest",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "STG_EMPLOYEE_DEPT"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_sqldb_dest')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_employee_source')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('ds_employee_source_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_dept_source')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('ls_dept_source_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_sqldb_dest')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('ls_sqldb_dest_properties_typeProperties_server')]",
+					"database": "[parameters('ls_sqldb_dest_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": false,
+					"authenticationType": "SQL",
+					"userName": "[parameters('ls_sqldb_dest_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('ls_sqldb_dest_password')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/trigger1')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "pl_emloyee_dept",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Minute",
+						"interval": 15,
+						"startTime": "2025-11-29T07:10:00",
+						"timeZone": "India Standard Time"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/pl_emloyee_dept')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dataflow1')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_employee_source",
+								"type": "DatasetReference"
+							},
+							"name": "employee"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_dept_source",
+								"type": "DatasetReference"
+							},
+							"name": "dept"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_sqldb_dest",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "join1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          EmployeeID as integer,",
+						"          FirstName as string,",
+						"          LastName as string,",
+						"          HireDate as string,",
+						"          ManagerID as string,",
+						"          Salary as integer,",
+						"          Commission as integer,",
+						"          DeptName as string,",
+						"          {DeptNumber   } as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> employee",
+						"source(output(",
+						"          DeptNumber as integer,",
+						"          DeptName as string,",
+						"          DeptLoc as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> dept",
+						"employee, dept join({DeptNumber   } == DeptNumber,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"join1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     recreate:true,",
+						"     format: 'table',",
+						"     preSQLs:['DROP TABLE EMPLOYEE_DEPT;\\n\\nCREATE TABLE STG_EMPLOYEE_DEPT(EMPLOYEEID INT,\\nFIRST_NAME VARCHAR(50),\\nLAST_NAME VARCHAR(50),\\nHIRE_DATE VARCHAR(10),\\nMANAGER_ID VARCHAR(50),\\nSALARY INT,\\nCOMMISSION INT,\\nDEPT_NUMBER INT,\\nDEPT_NAME VARCHAR(50),\\nDEPT_LOC VARCHAR(50));'],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          EmployeeID,",
+						"          FirstName,",
+						"          LastName,",
+						"          HireDate,",
+						"          ManagerID,",
+						"          Salary,",
+						"          Commission,",
+						"          DeptNumber,",
+						"          DeptName = dept@DeptName,",
+						"          DeptLoc",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_employee_source')]",
+				"[concat(variables('factoryId'), '/datasets/ds_dept_source')]",
+				"[concat(variables('factoryId'), '/datasets/ds_sqldb_dest')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_join_employee_dept')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_employee_source",
+								"type": "DatasetReference"
+							},
+							"name": "employee"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_dept_source",
+								"type": "DatasetReference"
+							},
+							"name": "dept"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_sqldb_dest",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "joinemployeedept"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          EmployeeID as integer,",
+						"          FirstName as string,",
+						"          LastName as string,",
+						"          HireDate as string,",
+						"          ManagerID as string,",
+						"          Salary as integer,",
+						"          Commission as integer,",
+						"          DeptName as string,",
+						"          {DeptNumber   } as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> employee",
+						"source(output(",
+						"          DeptNumber as integer,",
+						"          DeptName as string,",
+						"          DeptLoc as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> dept",
+						"employee, dept join({DeptNumber   } == DeptNumber,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> joinemployeedept",
+						"joinemployeedept sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     recreate:true,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          EmployeeID,",
+						"          FirstName,",
+						"          LastName,",
+						"          HireDate,",
+						"          ManagerID,",
+						"          Salary,",
+						"          Commission,",
+						"          DeptNumber,",
+						"          DeptName = dept@DeptName,",
+						"          DeptLoc",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_employee_source')]",
+				"[concat(variables('factoryId'), '/datasets/ds_dept_source')]",
+				"[concat(variables('factoryId'), '/datasets/ds_sqldb_dest')]"
+			]
+		}
+	]
+}
